@@ -26,7 +26,7 @@ public class Automacao {
 
         acessaSiteCfmPreencheEFazDownload();
 
-        aguardarDownloadFinalizar("C:\\AutoCadastroCrm\\downloads", 60);
+        aguardarDownloadFinalizar("C:\\AutoCadastroCrm\\downloads", 120);
 
         fechaNavegadorAposDownload();
 
