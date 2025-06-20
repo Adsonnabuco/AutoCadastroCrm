@@ -40,14 +40,11 @@ public class Automacao {
             System.out.println("Nenhum arquivo .zip encontrado na pasta.");
             return;
         }
-
         for (File zipFile : arquivosZip) {
             System.out.println("Descompactando: " + zipFile.getName());
             descompactarZip(zipFile.getAbsolutePath(), pastaDestino);
         }
     }
-
-
 
     private void fechaNavegadorAposDownload() {
         driver.close();
@@ -94,16 +91,13 @@ public class Automacao {
                     break;
                 }
             }
-
             if (!downloadEmAndamento) {
                 System.out.println("Download finalizado.");
                 break;
             }
-
             Thread.sleep(1000);
             tempo++;
         }
-
         if (tempo >= timeoutSegundos) {
             System.out.println("Tempo esgotado esperando o download.");
         }
@@ -114,21 +108,16 @@ public class Automacao {
         if (!destDir.exists()) {
             destDir.mkdirs();
         }
-
         byte[] buffer = new byte[1024];
         ZipInputStream zis = new ZipInputStream(new FileInputStream(caminhoZip));
         ZipEntry zipEntry = zis.getNextEntry();
-
         while (zipEntry != null) {
             File novoArquivo = new File("C:\\AutoCadastroCrm\\descompactado", zipEntry.getName());
-
             if (zipEntry.isDirectory()) {
                 novoArquivo.mkdirs();
             } else {
                 new File(novoArquivo.getParent()).mkdirs();
-
                 FileOutputStream fos = new FileOutputStream(novoArquivo);
-
                 int len;
                 while ((len = zis.read(buffer)) > 0) {
                     fos.write(buffer, 0, len);
@@ -137,7 +126,6 @@ public class Automacao {
             }
             zipEntry = zis.getNextEntry();
         }
-
         zis.closeEntry();
         zis.close();
 
