@@ -130,4 +130,17 @@ public class Automacao {
         zis.close();
 
     }
+
+    public void acessaShift() {
+        String URL_SHIFTPRODUCAO = "https://sistemalis.atomosaude.com.br/main/auth/login";
+        String URL_SHIFTHOMOLOGACAO = "https://homologacao.atomosaude.com.br/main/auth/login?returnUrl=%2Fapp";
+
+        System.setProperty("webdriver.chrome.driver", "C:\\AutoCadastroCrm\\automacaocrm\\Driver\\chromedriver.exe");
+        driver.navigate().to(URL_SHIFTHOMOLOGACAO);
+
+    }
+
+
+
+
 }

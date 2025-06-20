@@ -13,12 +13,16 @@ public class AutomacaocrmApplication {
 	public static void main(String[] args) throws InterruptedException, IOException {
 		SpringApplication.run(AutomacaocrmApplication.class, args);
 
-//		Automacao automacao = new Automacao();
+		Automacao automacao = new Automacao();
 //		automacao.iniciandowebDriver();
 //		automacao.descompactarZipsNaPasta("C:\\AutoCadastroCrm\\downloads", "C:\\AutoCadastroCrm\\descompactado");
 
-		ConversorTxtParaCsvService conversor = new ConversorTxtParaCsvService();
-		conversor.processarArquivosTxt();
+//		ConversorTxtParaCsvService conversor = new ConversorTxtParaCsvService();
+//		conversor.processarArquivosTxt();
+
+		automacao.acessaShift();
+//		Automacao.ImplementaAutomacaoDeImportacaoDePlanilhas();
+
 
 	}
 }
