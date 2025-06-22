@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ComponentScan(basePackages = "com.emilio")
 public class AutomacaocrmApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(AutomacaocrmApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(AutomacaocrmApplication.class, args);
+    }
 }

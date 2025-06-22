@@ -42,7 +42,7 @@ public class Automacao {
     private static final String LOGS_DIR = BASE_PATH + "\\logs";
     private static final String DRIVER_PATH = BASE_PATH + "\\automacaocrm\\Driver\\chromedriver.exe";
 
-    @Scheduled(cron = "0 0 21 * * *")
+    @Scheduled(cron = "0 10 22 * * *")
 //    @Scheduled(fixedRate = 10000)
     public void executarAutomacaoCompleta() {
         String dataHoraInicio = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
@@ -313,7 +313,7 @@ public class Automacao {
         options.addArguments("--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--disable-extensions");
 
         // Adicionar modo headless para execução em servidor
-        options.addArguments("--headless");
+//        options.addArguments("--headless");
 
         System.setProperty("webdriver.chrome.driver", DRIVER_PATH);
         driver = new ChromeDriver(options);
@@ -423,19 +423,19 @@ public class Automacao {
         options.addArguments("--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--disable-extensions");
 
         // Adicionar modo headless para execução em servidor
-        options.addArguments("--headless");
+//        options.addArguments("--headless");
 
         driver = new ChromeDriver(options);
         driver.navigate().to(URL_SHIFTHOMOLOGACAO);
         driver.manage().window().maximize();
 
         try {
-            Thread.sleep(300);
+            Thread.sleep(1000);
             logger.debug("Realizando login no Shift...");
 
-            driver.findElement(By.xpath("//input[@type='text']")).sendKeys(USUARIO);
-            driver.findElement(By.xpath("//input[@type='password']")).sendKeys(SENHA);
-            Thread.sleep(500);
+            driver.findElement(By.xpath("//input[@placeholder='Escreva seu usuário']")).sendKeys(USUARIO);
+            driver.findElement(By.xpath("//input[@placeholder='Escreva sua senha']")).sendKeys(SENHA);
+            Thread.sleep(700);
             driver.findElement(By.cssSelector("button.ant-btn.ant-btn-primary")).click();
 
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
@@ -579,13 +579,13 @@ public class Automacao {
         }
     }
 
-    // Método para execução manual (útil para testes)
+    // Metodo para execução manual (útil para testes)
     public void executarManualmente() {
         logger.info("EXECUÇÃO MANUAL da automação solicitada");
         executarAutomacaoCompleta();
     }
 
-    // Método para testar apenas uma etapa específica
+    // Metodo para testar apenas uma etapa específica
     public void testarEtapa(String etapa) {
         logger.info("=== TESTE DA ETAPA: {} ===", etapa.toUpperCase());
 
