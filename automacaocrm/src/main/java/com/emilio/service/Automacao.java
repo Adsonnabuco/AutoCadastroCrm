@@ -27,19 +27,29 @@ public class Automacao {
 
     // Configurações
     private WebDriver driver;
+
     private static final String CHAVE_DE_ACESSO = "DB5TZFUO";
     private static final String URL_CFMLIST = "https://sistemas.cfm.org.br/listamedicos/";
     private static final String USUARIO = "adsonnabucoler";
     private static final String SENHA = "@Br1l";
     private static final String URL_SHIFTPRODUCAO = "https://sistemalis.atomosaude.com.br/main/auth/login";
 
-    // Diretórios
-    private static final String BASE_PATH = "C:\\AutomacaoCadastroCrm";
+    // Diretórios. VM
+    private static final String BASE_PATH = "C:\\AutoCadastroCrm";
     private static final String DOWNLOADS_DIR = BASE_PATH + "\\downloads";
     private static final String DESCOMPACTADO_DIR = BASE_PATH + "\\descompactado";
     private static final String PROCESSADOS_DIR = BASE_PATH + "\\Processados";
     private static final String IMPORTADOS_DIR = BASE_PATH + "\\importados";
     private static final String LOGS_DIR = BASE_PATH + "\\logs";
+
+    // Local.
+//    private static final String BASE_PATH = "C:\\AutomacaoCadastroCrm";
+//    private static final String DOWNLOADS_DIR = BASE_PATH + "\\downloads";
+//    private static final String DESCOMPACTADO_DIR = BASE_PATH + "\\descompactado";
+//    private static final String PROCESSADOS_DIR = BASE_PATH + "\\Processados";
+//    private static final String IMPORTADOS_DIR = BASE_PATH + "\\importados";
+//    private static final String LOGS_DIR = BASE_PATH + "\\logs";
+
     private static final String DRIVER_PATH = BASE_PATH + "\\automacaocrm\\Driver\\chromedriver.exe";
 
     @Scheduled(cron = "0 0 21 * * *")
