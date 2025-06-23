@@ -42,7 +42,7 @@ public class Automacao {
     private static final String LOGS_DIR = BASE_PATH + "\\logs";
     private static final String DRIVER_PATH = BASE_PATH + "\\automacaocrm\\Driver\\chromedriver.exe";
 
-    @Scheduled(cron = "0 10 22 * * *")
+    @Scheduled(cron = "0 0 21 * * *")
 //    @Scheduled(fixedRate = 10000)
     public void executarAutomacaoCompleta() {
         String dataHoraInicio = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
@@ -106,14 +106,11 @@ public class Automacao {
         logger.info("Iniciando processo de download...");
 
         try {
-            // Limpar pasta de downloads antes de começar
             limparPastaDownloads();
-
             configurarChromeDriver();
             acessaSiteCfmPreencheEFazDownload();
             aguardarDownloadFinalizar(DOWNLOADS_DIR, 300);
 
-            // Verificar se o download foi bem-sucedido
             File dirDownloads = new File(DOWNLOADS_DIR);
             File[] arquivosZip = dirDownloads.listFiles((dir, nome) -> nome.toLowerCase().endsWith(".zip"));
 
@@ -299,7 +296,6 @@ public class Automacao {
         }
     }
 
-    // Métodos originais mantidos com melhorias nos logs
     public void configurarChromeDriver() {
         logger.debug("Configurando Chrome Driver...");
 
@@ -312,8 +308,7 @@ public class Automacao {
         options.setExperimentalOption("prefs", chromePrefs);
         options.addArguments("--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--disable-extensions");
 
-        // Adicionar modo headless para execução em servidor
-        //options.addArguments("--headless");
+        options.addArguments("--headless");
 
         System.setProperty("webdriver.chrome.driver", DRIVER_PATH);
         driver = new ChromeDriver(options);
@@ -353,26 +348,34 @@ public class Automacao {
 
         File dir = new File(pastaDownload);
         int tempo = 0;
+        boolean downloadIniciado = false;
 
         while (tempo < timeoutSegundos) {
-            boolean downloadEmAndamento = false;
             File[] arquivos = dir.listFiles();
+            boolean temCrdownload = false;
+            boolean temZip = false;
 
             if (arquivos != null) {
                 for (File arquivo : arquivos) {
-                    if (arquivo.getName().endsWith(".tmp") || arquivo.getName().endsWith(".crdownload")) {
-                        downloadEmAndamento = true;
-                        break;
+                    String nome = arquivo.getName().toLowerCase();
+                    if (nome.endsWith(".crdownload")) {
+                        temCrdownload = true;
+                        downloadIniciado = true;
+                    }
+                    if (nome.endsWith(".zip")) {
+                        temZip = true;
                     }
                 }
             }
 
-            if (!downloadEmAndamento) {
+            // Caso: o .zip está presente e nenhum .crdownload está mais em andamento
+            if (downloadIniciado && temZip && !temCrdownload) {
                 logger.info("✓ Download finalizado com sucesso");
                 return;
             }
 
-            if (tempo % 10 == 0 && tempo > 0) { // Log a cada 10 segundos
+            // Log periódico
+            if (tempo % 10 == 0 && tempo > 0) {
                 logger.debug("Aguardando download... {}s transcorridos", tempo);
             }
 
@@ -383,13 +386,43 @@ public class Automacao {
         logger.error("❌ TIMEOUT: Download não finalizou dentro do tempo esperado ({}s)", timeoutSegundos);
         throw new RuntimeException("Timeout no download");
     }
+//    public static void aguardarDownloadFinalizar(String pastaDownload, int timeoutSegundos) throws InterruptedException {
+//        logger.info("Aguardando finalização do download... (timeout: {}s)", timeoutSegundos);
+//
+//        File dir = new File(pastaDownload);
+//        int tempo = 0;
+//
+//        while (tempo < timeoutSegundos) {
+//            boolean downloadEmAndamento = false;
+//            File[] arquivos = dir.listFiles();
+//
+//            if (arquivos != null) {
+//                for (File arquivo : arquivos) {
+//                    if (arquivo.getName().endsWith(".tmp") || arquivo.getName().endsWith(".crdownload")) {
+//                        downloadEmAndamento = true;
+//                        break;
+//                    }
+//                }
+//            }
+//            if (!downloadEmAndamento) {
+//                logger.info("✓ Download finalizado com sucesso");
+//                return;
+//            }
+//            if (tempo % 10 == 0 && tempo > 0) { // Log a cada 10 segundos
+//                logger.debug("Aguardando download... {}s transcorridos", tempo);
+//            }
+//            Thread.sleep(1000);
+//            tempo++;
+//        }
+//        logger.error("❌ TIMEOUT: Download não finalizou dentro do tempo esperado ({}s)", timeoutSegundos);
+//        throw new RuntimeException("Timeout no download");
+//    }
 
     public static void descompactarZip(String caminhoZip, String pastaDestino) throws IOException {
         File destDir = new File(pastaDestino);
         if (!destDir.exists()) {
             destDir.mkdirs();
         }
-
         byte[] buffer = new byte[1024];
         int arquivosExtraidos = 0;
 
@@ -413,11 +446,9 @@ public class Automacao {
                     }
                     arquivosExtraidos++;
                 }
-
                 zipEntry = zis.getNextEntry();
             }
         }
-
         logger.debug("✓ Extraídos {} arquivos do ZIP: {}", arquivosExtraidos, new File(caminhoZip).getName());
     }
 
@@ -427,7 +458,6 @@ public class Automacao {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--disable-extensions");
 
-        // Adicionar modo headless para execução em servidor
         options.addArguments("--headless");
 
         driver = new ChromeDriver(options);
@@ -531,7 +561,6 @@ public class Automacao {
                 driver.switchTo().frame("frmContentZen");
                 driver.findElement(By.id("control_8")).click();
 
-                // Aguarda processamento
                 logger.debug("Aguardando processamento do arquivo...");
                 wait.until(d -> {
                     try {
@@ -549,22 +578,18 @@ public class Automacao {
 
                 logger.info("✓ Arquivo {} importado: {} registros", csv.getName(), qtd);
 
-                // Move arquivo para pasta importados
                 File destino = new File(pastaImportados, csv.getName());
                 if (csv.renameTo(destino)) {
                     logger.debug("Arquivo movido para pasta importados: {}", csv.getName());
                 } else {
                     logger.error("Erro ao mover arquivo {} para pasta importados", csv.getName());
                 }
-
                 Thread.sleep(2000);
-
             } catch (Exception e) {
                 arquivosComErro++;
                 logger.error("❌ Erro ao importar arquivo {}: ", csv.getName(), e);
             }
         }
-
         logger.info("========================================");
         logger.info("=== RESUMO DA IMPORTAÇÃO ===");
         logger.info("Arquivos processados: {}", arquivosProcessados);
@@ -584,13 +609,11 @@ public class Automacao {
         }
     }
 
-    // Metodo para execução manual (útil para testes)
     public void executarManualmente() {
         logger.info("EXECUÇÃO MANUAL da automação solicitada");
         executarAutomacaoCompleta();
     }
 
-    // Metodo para testar apenas uma etapa específica
     public void testarEtapa(String etapa) {
         logger.info("=== TESTE DA ETAPA: {} ===", etapa.toUpperCase());
 
@@ -613,9 +636,7 @@ public class Automacao {
                 default:
                     logger.warn("Etapa '{}' não reconhecida. Etapas disponíveis: download, descompactacao, conversao, importacao", etapa);
             }
-
             logger.info("=== TESTE DA ETAPA {} CONCLUÍDO ===", etapa.toUpperCase());
-
         } catch (Exception e) {
             logger.error("Erro no teste da etapa {}: ", etapa, e);
         }
