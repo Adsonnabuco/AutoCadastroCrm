@@ -30,11 +30,11 @@ public class Automacao {
     private static final String CHAVE_DE_ACESSO = "DB5TZFUO";
     private static final String URL_CFMLIST = "https://sistemas.cfm.org.br/listamedicos/";
     private static final String USUARIO = "adsonnabucoler";
-    private static final String SENHA = "30215331";
-    private static final String URL_SHIFTHOMOLOGACAO = "https://homologacao.atomosaude.com.br/main/auth/login?returnUrl=%2Fapp";
+    private static final String SENHA = "@Br1l";
+    private static final String URL_SHIFTPRODUCAO = "https://sistemalis.atomosaude.com.br/main/auth/login";
 
     // Diretórios
-    private static final String BASE_PATH = "C:\\AutoCadastroCrm";
+    private static final String BASE_PATH = "C:\\AutomacaoCadastroCrm";
     private static final String DOWNLOADS_DIR = BASE_PATH + "\\downloads";
     private static final String DESCOMPACTADO_DIR = BASE_PATH + "\\descompactado";
     private static final String PROCESSADOS_DIR = BASE_PATH + "\\Processados";
@@ -43,7 +43,7 @@ public class Automacao {
     private static final String DRIVER_PATH = BASE_PATH + "\\automacaocrm\\Driver\\chromedriver.exe";
 
     @Scheduled(cron = "0 0 21 * * *")
-//    @Scheduled(fixedRate = 10000)
+    //@Scheduled(fixedRate = 10000)
     public void executarAutomacaoCompleta() {
         String dataHoraInicio = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
         logger.info("========================================");
@@ -131,7 +131,6 @@ public class Automacao {
     private void executarDescompactacao() throws IOException {
         logger.info("Iniciando processo de descompactação...");
 
-        // Limpar pasta descompactado antes de começar
         limparPastaDescompactado();
 
         File dirOrigem = new File(DOWNLOADS_DIR);
@@ -148,7 +147,6 @@ public class Automacao {
                 logger.info("Descompactando arquivo: {}", zipFile.getName());
                 descompactarZip(zipFile.getAbsolutePath(), DESCOMPACTADO_DIR);
 
-                // Remove o arquivo ZIP após descompactação bem-sucedida
                 if (zipFile.delete()) {
                     logger.info("✓ Arquivo ZIP removido com sucesso: {}", zipFile.getName());
                 } else {
@@ -162,7 +160,6 @@ public class Automacao {
             }
         }
 
-        // Verificar se há arquivos descompactados
         File dirDescompactado = new File(DESCOMPACTADO_DIR);
         File[] arquivosDescompactados = dirDescompactado.listFiles();
         int totalArquivos = arquivosDescompactados != null ? arquivosDescompactados.length : 0;
@@ -174,7 +171,6 @@ public class Automacao {
     private void executarConversao() throws IOException {
         logger.info("Iniciando conversão de TXT para CSV...");
 
-        // Verificar se há arquivos TXT para processar
         File pastaDescompactado = new File(DESCOMPACTADO_DIR);
         File[] arquivosTxt = pastaDescompactado.listFiles((dir, name) -> name.toLowerCase().endsWith(".txt"));
 
@@ -189,7 +185,6 @@ public class Automacao {
             ConversorTxtParaCsvService conversor = new ConversorTxtParaCsvService();
             conversor.processarArquivosTxt();
 
-            // Verificar se a conversão foi bem-sucedida
             File pastaProcessados = new File(PROCESSADOS_DIR);
             File[] arquivosCsv = pastaProcessados.listFiles((dir, name) -> name.toLowerCase().endsWith(".csv"));
             int csvGerados = arquivosCsv != null ? arquivosCsv.length : 0;
@@ -368,13 +363,11 @@ public class Automacao {
                 }
             }
 
-            // Caso: o .zip está presente e nenhum .crdownload está mais em andamento
             if (downloadIniciado && temZip && !temCrdownload) {
                 logger.info("✓ Download finalizado com sucesso");
                 return;
             }
 
-            // Log periódico
             if (tempo % 10 == 0 && tempo > 0) {
                 logger.debug("Aguardando download... {}s transcorridos", tempo);
             }
@@ -386,38 +379,6 @@ public class Automacao {
         logger.error("❌ TIMEOUT: Download não finalizou dentro do tempo esperado ({}s)", timeoutSegundos);
         throw new RuntimeException("Timeout no download");
     }
-//    public static void aguardarDownloadFinalizar(String pastaDownload, int timeoutSegundos) throws InterruptedException {
-//        logger.info("Aguardando finalização do download... (timeout: {}s)", timeoutSegundos);
-//
-//        File dir = new File(pastaDownload);
-//        int tempo = 0;
-//
-//        while (tempo < timeoutSegundos) {
-//            boolean downloadEmAndamento = false;
-//            File[] arquivos = dir.listFiles();
-//
-//            if (arquivos != null) {
-//                for (File arquivo : arquivos) {
-//                    if (arquivo.getName().endsWith(".tmp") || arquivo.getName().endsWith(".crdownload")) {
-//                        downloadEmAndamento = true;
-//                        break;
-//                    }
-//                }
-//            }
-//            if (!downloadEmAndamento) {
-//                logger.info("✓ Download finalizado com sucesso");
-//                return;
-//            }
-//            if (tempo % 10 == 0 && tempo > 0) { // Log a cada 10 segundos
-//                logger.debug("Aguardando download... {}s transcorridos", tempo);
-//            }
-//            Thread.sleep(1000);
-//            tempo++;
-//        }
-//        logger.error("❌ TIMEOUT: Download não finalizou dentro do tempo esperado ({}s)", timeoutSegundos);
-//        throw new RuntimeException("Timeout no download");
-//    }
-
     public static void descompactarZip(String caminhoZip, String pastaDestino) throws IOException {
         File destDir = new File(pastaDestino);
         if (!destDir.exists()) {
@@ -453,7 +414,7 @@ public class Automacao {
     }
 
     public void acessaShift() throws InterruptedException {
-        logger.info("Acessando sistema Shift: {}", URL_SHIFTHOMOLOGACAO);
+        logger.info("Acessando sistema Shift: {}", URL_SHIFTPRODUCAO);
 
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--disable-extensions");
@@ -461,7 +422,7 @@ public class Automacao {
         options.addArguments("--headless");
 
         driver = new ChromeDriver(options);
-        driver.navigate().to(URL_SHIFTHOMOLOGACAO);
+        driver.navigate().to(URL_SHIFTPRODUCAO);
         driver.manage().window().maximize();
 
         try {
