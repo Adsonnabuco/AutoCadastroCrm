@@ -6,7 +6,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableScheduling // Habilita o suporte ao @Scheduled
+//@EnableScheduling // Habilita o suporte ao @Scheduled
 @ComponentScan(basePackages = "com.emilio")
 public class AutomacaocrmApplication {
 

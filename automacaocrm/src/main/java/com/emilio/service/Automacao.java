@@ -111,7 +111,7 @@ public class Automacao {
 
             configurarChromeDriver();
             acessaSiteCfmPreencheEFazDownload();
-            aguardarDownloadFinalizar(DOWNLOADS_DIR, 120);
+            aguardarDownloadFinalizar(DOWNLOADS_DIR, 300);
 
             // Verificar se o download foi bem-sucedido
             File dirDownloads = new File(DOWNLOADS_DIR);
@@ -313,10 +313,15 @@ public class Automacao {
         options.addArguments("--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--disable-extensions");
 
         // Adicionar modo headless para execução em servidor
-//        options.addArguments("--headless");
+        //options.addArguments("--headless");
 
         System.setProperty("webdriver.chrome.driver", DRIVER_PATH);
         driver = new ChromeDriver(options);
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         driver.manage().window().maximize();
 
         logger.debug("Chrome Driver configurado com sucesso (modo headless)");
@@ -423,7 +428,7 @@ public class Automacao {
         options.addArguments("--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--disable-extensions");
 
         // Adicionar modo headless para execução em servidor
-//        options.addArguments("--headless");
+        options.addArguments("--headless");
 
         driver = new ChromeDriver(options);
         driver.navigate().to(URL_SHIFTHOMOLOGACAO);
