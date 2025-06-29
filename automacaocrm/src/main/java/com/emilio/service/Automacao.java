@@ -1,5 +1,7 @@
 package com.emilio.service;
 
+import com.emilio.model.Credenciais;
+import com.emilio.util.JsonReader;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -30,9 +32,11 @@ public class Automacao {
 
     private static final String CHAVE_DE_ACESSO = "DB5TZFUO";
     private static final String URL_CFMLIST = "https://sistemas.cfm.org.br/listamedicos/";
-    private static final String USUARIO = "adsonnabucoler";
-    private static final String SENHA = "@Br1l";
+    private static final String USUARIO = "";
+    private static final String SENHA = "";
     private static final String URL_SHIFTPRODUCAO = "https://sistemalis.atomosaude.com.br/main/auth/login";
+    private static final String URL_SHIFTHOMOLOGACAO = "homologacao.atomosaude.com.br/main/app";
+
 
     // Diretórios. VM
     private static final String BASE_PATH = "C:\\AutoCadastroCrm";
@@ -41,14 +45,8 @@ public class Automacao {
     private static final String PROCESSADOS_DIR = BASE_PATH + "\\Processados";
     private static final String IMPORTADOS_DIR = BASE_PATH + "\\importados";
     private static final String LOGS_DIR = BASE_PATH + "\\logs";
+    private static final String BASE_ATUAL_DIR = BASE_PATH + "\\Base-atual";
 
-    // Local.
-//    private static final String BASE_PATH = "C:\\AutomacaoCadastroCrm";
-//    private static final String DOWNLOADS_DIR = BASE_PATH + "\\downloads";
-//    private static final String DESCOMPACTADO_DIR = BASE_PATH + "\\descompactado";
-//    private static final String PROCESSADOS_DIR = BASE_PATH + "\\Processados";
-//    private static final String IMPORTADOS_DIR = BASE_PATH + "\\importados";
-//    private static final String LOGS_DIR = BASE_PATH + "\\logs";
 
     private static final String DRIVER_PATH = BASE_PATH + "\\automacaocrm\\Driver\\chromedriver.exe";
 
@@ -73,8 +71,8 @@ public class Automacao {
             logger.info("=== ETAPA 2: DESCOMPACTAÇÃO ===");
             executarDescompactacao();
 
-            // Etapa 3: Conversão TXT para CSV
-            logger.info("=== ETAPA 3: CONVERSÃO TXT PARA CSV ===");
+            // Etapa 3: Comparação e Conversão TXT para CSV
+            logger.info("=== ETAPA 3: COMPARAÇÂO/CONVERSÃO TXT PARA CSV ===");
             executarConversao();
 
             // Etapa 4: Importação no Shift
@@ -140,8 +138,7 @@ public class Automacao {
 
     private void executarDescompactacao() throws IOException {
         logger.info("Iniciando processo de descompactação...");
-
-        limparPastaDescompactado();
+//      limparPastaDescompactado();
 
         File dirOrigem = new File(DOWNLOADS_DIR);
         File[] arquivosZip = dirOrigem.listFiles((dir, nome) -> nome.toLowerCase().endsWith(".zip"));
@@ -234,7 +231,6 @@ public class Automacao {
 
         } catch (Exception e) {
             logger.error("Erro durante a importação no Shift: ", e);
-            throw e;
         } finally {
             fecharDriverSeguro();
         }
@@ -389,6 +385,7 @@ public class Automacao {
         logger.error("❌ TIMEOUT: Download não finalizou dentro do tempo esperado ({}s)", timeoutSegundos);
         throw new RuntimeException("Timeout no download");
     }
+
     public static void descompactarZip(String caminhoZip, String pastaDestino) throws IOException {
         File destDir = new File(pastaDestino);
         if (!destDir.exists()) {
@@ -423,24 +420,24 @@ public class Automacao {
         logger.debug("✓ Extraídos {} arquivos do ZIP: {}", arquivosExtraidos, new File(caminhoZip).getName());
     }
 
-    public void acessaShift() throws InterruptedException {
-        logger.info("Acessando sistema Shift: {}", URL_SHIFTPRODUCAO);
+    public void acessaShift() throws Exception {
+        logger.info("Acessando sistema Shift: {}", URL_SHIFTHOMOLOGACAO);
+        Credenciais credenciais = JsonReader.carregarCredenciais();
 
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--disable-extensions");
-
         options.addArguments("--headless");
 
         driver = new ChromeDriver(options);
-        driver.navigate().to(URL_SHIFTPRODUCAO);
+        driver.navigate().to(URL_SHIFTHOMOLOGACAO);
         driver.manage().window().maximize();
 
         try {
             Thread.sleep(1000);
             logger.debug("Realizando login no Shift...");
 
-            driver.findElement(By.xpath("//input[@placeholder='Escreva seu usuário']")).sendKeys(USUARIO);
-            driver.findElement(By.xpath("//input[@placeholder='Escreva sua senha']")).sendKeys(SENHA);
+            driver.findElement(By.xpath("//input[@placeholder='Escreva seu usuário']")).sendKeys(credenciais.getUsuario());
+            driver.findElement(By.xpath("//input[@placeholder='Escreva sua senha']")).sendKeys(credenciais.getSenha());
             Thread.sleep(700);
             driver.findElement(By.cssSelector("button.ant-btn.ant-btn-primary")).click();
 

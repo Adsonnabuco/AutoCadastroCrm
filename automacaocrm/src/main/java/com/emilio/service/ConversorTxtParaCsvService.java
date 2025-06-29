@@ -10,6 +10,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 @Service
@@ -20,6 +21,7 @@ public class ConversorTxtParaCsvService {
     private static final int LIMITE_LINHAS_POR_ARQUIVO = 60000;
     private static final String PASTA_ORIGEM = "C:\\AutoCadastroCrm\\descompactado";
     private static final String PASTA_DESTINO = "C:\\AutoCadastroCrm\\processados";
+    private static final String PASTA_BASE_ATUAL = "C:\\AutoCadastroCrm\\Base-atual";
 
     private static final String CABECALHO = "ID;ID LIS ANTIGO;NOME;DATA NASCIMENTO;SEXO (M/F/I/N);RG;CPF;STATUS (A/I);NÚMERO DO CRM;ESTADO DO CRM;CONSELHO (SIGLA);COD. ESPECIALIDADE;CEP;TIPO ENDEREÇO(R/C);ESTADO;PAÍS;ENDEREÇO;NÚMERO;BAIRRO;CIDADE;COMPLEMENTO;EMAIL;DDD;TELEFONE;DDD;TELEFONE CELULAR;OBSERVAÇÃO;NOTIFICA QUANDO SOLICITANTE (S/N);ENVIO DE LAUDO POR E-MAIL (S/N);TIPO DO ENVIO DO LAUDO (D/P/S/O);NACIONALIDADE\n";
 
@@ -179,10 +181,10 @@ public class ConversorTxtParaCsvService {
     }
 
     /**
-     * Remove arquivos TXT da pasta descompactado após processamento bem-sucedido
+     * Move arquivos TXT da pasta descompactado para Base_ATual após processamento bem-sucedido
      */
-    public void limparArquivosTxtProcessados() {
-        logger.info("Iniciando limpeza de arquivos TXT processados...");
+    public void MoverArquivosTxtBaseAtual() {
+        logger.info("Iniciando Remanejamento de arquivos TXT processados...");
 
         File pasta = new File(PASTA_ORIGEM);
         File[] arquivosTxt = pasta.listFiles((dir, name) -> name.toLowerCase().endsWith(".txt"));
@@ -192,20 +194,21 @@ public class ConversorTxtParaCsvService {
             return;
         }
 
-        int arquivosRemovidos = 0;
+        int arquivosMovidos = 0;
         for (File arquivo : arquivosTxt) {
             try {
-                if (arquivo.delete()) {
-                    logger.info("Arquivo TXT removido: {}", arquivo.getName());
-                    arquivosRemovidos++;
+                if (arquivo.isFile()) {
+                    Path origemPath = arquivo.toPath();
+                    Path destinoBaseatual = Paths.get(PASTA_BASE_ATUAL, arquivo.getName());
+                    Files.move(origemPath, destinoBaseatual, StandardCopyOption.REPLACE_EXISTING);
+                    arquivosMovidos++;
                 } else {
-                    logger.warn("Não foi possível remover o arquivo: {}", arquivo.getName());
+                    logger.warn("Não foi possível Mover o arquivo: {}", arquivo.getName());
                 }
             } catch (Exception e) {
                 logger.error("Erro ao remover arquivo {}: {}", arquivo.getName(), e.getMessage());
             }
         }
-
-        logger.info("Limpeza concluída: {} arquivos TXT removidos", arquivosRemovidos);
+        logger.info("Mover arquivos Concluido: {} arquivos TXT Movidos", arquivosMovidos);
     }
 }
